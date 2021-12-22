@@ -1,8 +1,61 @@
 import React, { Component } from 'react';
 import logo from '../logo.png';
 import './App.css';
+import Web3 from 'web3'
+import Color from '../abis/Color.json'
 
 class App extends Component {
+
+  async componentWillMount(){
+    await this.loadWeb3()
+    await this.loadBlockChainData()
+  }
+
+  async loadWeb3(){
+    //getting stuff from Metamask
+    window.alert("Loading web3")
+    window.web3 = new Web3(window.ethereum)
+    await window.ethereum.enable()
+  }
+
+  async loadBlockChainData(){
+    const web3 = window.web3
+    // load account
+    const accounts = await web3.eth.getAccounts()
+    this.setState({account:accounts[0]})
+
+    const networkId = await web3.eth.net.getId()
+    console.log(networkId)
+    const networkData = Color.networks[networkId]
+
+    if(!networkData){
+      // if network is not ready
+      window.alert('network data is not ready!!')
+    }
+
+    const abi = Color.abi
+    const address = networkData.address
+    var contract = new web3.eth.Contract(abi, address)
+    console.log(contract)
+    // this.setState({ contract })
+
+    //Load color
+    const color = await contract.methods.colorArray(0).call()
+    this.setState({
+      colors:[...this.state.colors,color]
+    })
+  }
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      account: '',
+      name: 'ethan',
+      contract: null,
+      colors: []
+    };
+  }
+
   render() {
     return (
       <div>
@@ -13,8 +66,11 @@ class App extends Component {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Dapp University
+            Color tokens {this.state.name}
+            Account Here {this.state.account}
+            Contract Here {this.state.contract}
           </a>
+
         </nav>
         <div className="container-fluid mt-5">
           <div className="row">
@@ -27,9 +83,14 @@ class App extends Component {
                 >
                   <img src={logo} className="App-logo" alt="logo" />
                 </a>
-                <h1>Dapp University Starter Kit</h1>
+                <h1>Ethan test</h1>
+                Account Here {this.state.account}
                 <p>
-                  Edit <code>src/components/App.js</code> and save to reload.
+                  Color tokens {this.state.name}
+
+                  Account Here {this.state.account}
+
+                  Contract Here {this.state.contract}
                 </p>
                 <a
                   className="App-link"
@@ -37,7 +98,6 @@ class App extends Component {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  LEARN BLOCKCHAIN <u><b>NOW! </b></u>
                 </a>
               </div>
             </main>
